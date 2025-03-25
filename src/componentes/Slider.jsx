@@ -1,61 +1,61 @@
-import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect } from 'react';
+import CityFilter from './CityFilter';
 
-const cities = [
-    { name: "Nueva York", img: "https://media.istockphoto.com/id/1454217037/es/foto/estatua-de-la-libertad-y-horizonte-de-la-ciudad-de-nueva-york-con-el-distrito-financiero-de.jpg?s=612x612&w=0&k=20&c=1abPeg82iwNr0XbPc9eormGet3axsUdkaWgnXSM8e9g=" },
-    { name: "París", img: "https://images.unsplash.com/photo-1583265266785-aab9e443ee68?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Y2l1ZGFkJTIwZGUlMjBwYXIlQzMlQURzfGVufDB8fDB8fHww" },
-    { name: "Tokio", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiDoPAzpD-c3vn68GSPlkcFor6yohEiKd6Tg&s" },
-    { name: "Londres", img: "https://media.istockphoto.com/id/1294454411/es/foto/s%C3%ADmbolos-de-londres-con-big-ben-double-decker-buses-y-red-phone-booth-en-inglaterra-reino-unido.jpg?s=612x612&w=0&k=20&c=uUglbAlKij_qrHfkOO9dfBRxv9OZIJBmmmG-lK-y7R4=" },
-    { name: "Roma", img: "https://www.italia.it/content/dam/tdh/es/interests/lazio/roma/roma-in-48-ore/media/20220127150143-colosseo-roma-lazio-shutterstock-756032350.jpg" },
-    { name: "Sídney", img: "https://www.viajarsydney.com/img/itinerario-sydney-5-dias.jpg" },
-    { name: "Dubai", img: "https://media.istockphoto.com/id/467829216/es/foto/marina-de-dubai.jpg?s=612x612&w=0&k=20&c=p43O66Tap8v3SwuWjcPd407rMnLulHscGyweY06uL_4=" },
-    { name: "Buenos Aires", img: "https://media.istockphoto.com/id/667138246/es/foto/argentina-buenos-aires-amanecer-en-el-centro-con-hora-punta.jpg?s=612x612&w=0&k=20&c=tpvOrY5aqJBBaqb5X27WjlhDsUB0GHJWc1GRD5Z5icQ=" },
-    { name: "Berlín", img: "https://pohcdn.com/guide/sites/default/files/styles/paragraph__live_banner__lb_image__1880bp/public/live_banner/berlin.jpg" },
-    { name: "Moscú", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThS7SvCOg1jHJcwUeHS1pXrzy8JmUliFBlLA&s" },
-    { name: "Pekín", img: "https://viajes.nationalgeographic.com.es/medio/2018/02/27/pekin-china__1280x720.jpg" },
-    { name: "Los Ángeles", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Los_Angeles_with_Mount_Baldy.jpg/288px-Los_Angeles_with_Mount_Baldy.jpg" }
-  ];
-  
-export default function Slider() {
-  const [currentTab, setCurrentTab] = useState(0);
-
-  const totalTabs = Math.ceil(cities.length / 4);
-
-  const nextTab = () => setCurrentTab((prev) => (prev + 1) % totalTabs);
-  const prevTab = () => setCurrentTab((prev) => (prev - 1 + totalTabs) % totalTabs);
+export default function CitiesList() {
+  const [cities, setCities] = useState([]);
+  const [filteredCities, setFilteredCities] = useState([]);
 
   useEffect(() => {
-    const interval = setInterval(nextTab, 3000);
-    return () => clearInterval(interval);
+    const fetchCities = async () => {
+      const response = await fetch("http://localhost:8080/api/cities/all");
+      const data = await response.json();
+      setCities(data.response);
+      setFilteredCities(data.response);
+    };
+
+    fetchCities();
   }, []);
 
+  const handleFilter = (searchTerm) => {
+    const filtered = cities.filter(city => 
+      city.name.toLowerCase().startsWith(searchTerm.toLowerCase())
+    );
+    setFilteredCities(filtered);
+  };
+
   return (
-    <div className="relative mt-10 w-180 max-sm:w-100">
-
-      <button
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full"
-        onClick={prevTab}
-      >
-        <ChevronLeft size={24} />
-      </button>
-
-      <div className="@container flex justify-center">
-        <div className="grid grid-cols-2 gap-2 p-4 bg-gray-100 rounded-lg shadow-lg max-sm:grid-cols-1">
-        {cities.slice(currentTab * 4, currentTab * 4 + 4).map((city, index) => (
-          <div key={index} className="text-center">
-            <img src={city.img} alt={city.name} className=" w-70 h-50 object-cover rounded-md" />
-            <p className="mt-2 text-sm font-semibold">{city.name}</p>
-          </div>
-        ))}
-      </div>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <CityFilter cities={cities} onFilter={handleFilter} />
       
-      <button
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full"
-        onClick={nextTab}
-      >
-        <ChevronRight size={24} />
-      </button>
+      {filteredCities.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredCities.map((city) => (
+            <div key={city._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="h-48 overflow-hidden">
+                <img
+                  src={city.image}
+                  alt={city.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-4">
+                <h2 className="text-xl font-bold mb-2">{city.name}</h2>
+                <p className="text-gray-600 text-sm line-clamp-2">{city.description}</p>
+                <div className="mt-3 flex justify-between items-center">
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    {city.country}
+                  </span>
+                  <span className="text-sm text-gray-500">{city.continent}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-lg text-gray-600">No cities were found that match your search.</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import Body from "../componentes/Body"
 export default function HomeLayout() {
   return (
     <> 
-    <NavBar /> 
+    <NavBar/> 
     <Hero />
     <Body />
     </>
